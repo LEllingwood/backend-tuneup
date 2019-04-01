@@ -2,15 +2,26 @@
 # -*- coding: utf-8 -*-
 """Tuneup assignment"""
 
-__author__ = "???"
+__author__ = "LEllingwood"
 
 import cProfile
 import pstats
+import timeit
 
 
 def profile(func):
     """A function that can be used as a decorator to measure performance"""
-    raise NotImplementedError("Complete this decorator function")
+    def wrapper(*args, **kwargs):
+        profile = cProfile.Profile()
+        profile.enable()
+
+        result = func(*args, **kwargs)
+        profile.disable()
+        stats = pstats.Stats(profile)
+        stats.sort_stats('cumulative').print_stats(10)
+        return result
+
+    return wrapper
 
 
 def read_movies(src):
@@ -22,12 +33,15 @@ def read_movies(src):
 
 def is_duplicate(title, movies):
     """Case insensitive search within a list"""
-    for movie in movies:
-        if movie.lower() == title.lower():
-            return True
-    return False
+    return title in movies
+    
+    # for movie in movies:
+        # if movie.lower() == title.lower():
+        #     return True
+    # return False
 
 
+@profile
 def find_duplicate_movies(src):
     """Returns a list of duplicate movies from a src list"""
     movies = read_movies(src)
@@ -41,14 +55,14 @@ def find_duplicate_movies(src):
 
 def timeit_helper():
     """Part A:  Obtain some profiling measurements using timeit"""
-    # YOUR CODE GOES HERE
+    t = timeit.Timer(stmt="find_duplicate_movies('movies.txt')", setup="from __main__ import find_duplicate_movies")
+    t_min = min(t.repeat(repeat=3, number=3))
+    print ("Best time across 3 repeats of 3 runs per repeat: {}".format(t_min))
 
 
 def main():
     """Computes a list of duplicate movie entries"""
-    result = find_duplicate_movies('movies.txt')
-    print('Found {} duplicate movies:'.format(len(result)))
-    print('\n'.join(result))
+    timeit_helper()
 
 
 if __name__ == '__main__':
